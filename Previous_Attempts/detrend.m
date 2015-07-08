@@ -4,12 +4,14 @@ close all
 
 load datiOTT;
 
+%% Stima trend
+
 % Do i nomi alle colonne dei dati che mi interessano
 loads = datiOTT(:,2);
 years = datiOTT(:,3);
 
 % Per ogni anno, calcolo la media dei carichi sulle 4 settimane di Ottobre
-% e la salva negli elementi del vettore "means"
+% e la salvo negli elementi del vettore "means"
 for i = 0:11
     
     currentYear = 2000+i;
@@ -27,3 +29,6 @@ end
 % Plotto il grafico del trend negli anni
 figure('Name', 'Data Trend',    'NumberTitle', 'off')
 plot(2000:2011, means, 'r')
+
+%% Detrendizzazione
+
