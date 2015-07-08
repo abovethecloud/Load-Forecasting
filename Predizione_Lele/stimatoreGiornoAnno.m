@@ -19,5 +19,4 @@ for i = 1:length(datiUtili)
     Z(i) = datiUtili(i, 2);
 end
 
-figure(1)
 createFit(X,Y,Z)

@@ -25,7 +25,7 @@ ft = fittype( 'poly11' );
 [fitresult, gof] = fit( [xData, yData], zData, ft );
 
 % Plot fit with data.
-figure( 'Name', 'untitled fit 1' );
+figure('Name', 'untitled fit 1',    'NumberTitle', 'off');
 h = plot( fitresult, [xData, yData], zData );
 legend( h, 'untitled fit 1', 'Z vs. X, Y', 'Location', 'NorthEast' );
 % Label axes
