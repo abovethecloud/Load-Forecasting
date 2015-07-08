@@ -102,15 +102,31 @@ for r=0:2,
     end
 end
 
+%% Spaghetti plot
+
+figure('Name', 'Spaghetti plot detrendizzato', 'NumberTitle', 'off')
+for i=1:12
+    
+    md=dayOfMonth(years==1999+i);
+    wd=dayOfWeek(years==1999+i);
+    ldet=loadsDetrended(years==1999+i);
+    md=md+wd(1)-1;
+    
+    plot(md,ldet,'*-')
+    hold on
+        
+end
+hold off
 
 %% Stima Stagionalta' dei dati e Destagionalizzazione
 
 meanDailyLoad = zeros(1, 7);
-% loadsIrregularity = zeros(1, length(loadsDetrended));
-loadsIrregularity = loadsDetrended;
+loadsIrregularity = loadsDetrended; % Vettore che conterra' i dati destagionalizzati
 for i = 1:7,
     booleanDay = (dayOfWeek == i);
     meanDailyLoad(i) = mean(loadsDetrended(booleanDay));
+    
+    % Destagionalizzazione
     loadsIrregularity = loadsIrregularity - meanDailyLoad(i)*(booleanDay');
 end
 
