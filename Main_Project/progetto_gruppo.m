@@ -53,10 +53,8 @@ figure(1)
 for r=0:2,
 
     for c=1:4,
-
-        i = 1;
         
-        Stagionati(i:i+27,j) = exp(Ldetrend(years==y));
+        Stagionati(1:28,j) = Ldetrend(years==y);
 
         asse=axis;
         axis([asse(1:2) 0.7 1.2]);
@@ -144,10 +142,10 @@ for i=1:12,
     j = j + 1;
     hold on
     
-    pause
+    % pause
     
 end
-hold off
+% hold off
 
 % spaghetti plot
 

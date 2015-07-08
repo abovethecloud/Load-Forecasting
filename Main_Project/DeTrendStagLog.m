@@ -1,3 +1,5 @@
+%% DETRENDIZZAZIONE E DESTAGIONALIZZAZIONE DEI DATI
+
 clc
 clear all
 close all
@@ -71,10 +73,10 @@ for i = 1:12
     loadsDetrended(years == currentYear) = log_loads(years == currentYear) - betterMeans(i);
 end
 
-% sistemare per vedere se i dati sono stati davvero detrendizzati
-% TODO: aggiungere destagionalizzazione
 
-% Plot dei dati (logaritmici) detrendizzati per l'anno 2000
+%% Verifica detrendizzazione con plot grafico
+
+% Plot dei dati (logaritmici) detrendizzati a partire dall'anno 2000
 figure('Name', 'Dati detrendizzati',     'NumberTitle', 'off')
 y = 2000;
 for r=0:2,
@@ -89,8 +91,8 @@ for r=0:2,
         % Blocco lo stesso intervallo sugli assi x e y, cosi' da vedere i trend
         axis([vetLimX min(loadsDetrended) max(loadsDetrended)]);
         
-        % Sull'asse delle X forzo il nome del giorno (datetick interpreta
-        % l'identificatore del "date_ID", ottenuto con datenum(...)
+        % Sull'asse delle X forzo il nome del giorno [datetick interpreta
+        % l'identificatore del "date_ID", ottenuto con datenum(...)]
         datetick('x','ddd', 'keepticks')
         xlabel('weekday')
         ylabel('detrendedLogLoad (MW)')
@@ -99,6 +101,53 @@ for r=0:2,
         y=y+1;
     end
 end
+
+
+%% Stima Stagionalta' dei dati e Destagionalizzazione
+
+meanDailyLoad = zeros(1, 7);
+% loadsIrregularity = zeros(1, length(loadsDetrended));
+loadsIrregularity = loadsDetrended;
+for i = 1:7,
+    booleanDay = (dayOfWeek == i);
+    meanDailyLoad(i) = mean(loadsDetrended(booleanDay));
+    loadsIrregularity = loadsIrregularity - meanDailyLoad(i)*(booleanDay');
+end
+
+figure('Name', 'Andamento Stagionalità',    'NumberTitle', 'off')
+plot(1:7, meanDailyLoad)
+
+%% Verifica della destagionalizzazione
+
+% Plot dei dati (logaritmici) detrendizzati e destagionalizzati a partire
+% dall'anno 2000
+figure('Name', 'Dati detrendizzati e destagionalizzati',     'NumberTitle', 'off')
+y = 2000;
+for r=0:2,
+    for c=1:4,
+        % Plotto 
+        subplot(3, 4, r*4+c)
+        plot(date_ID(years == y), loadsIrregularity(years == y))
+        
+        lim = axis;  % Fornisce un vettore [xMin xMax yMin yMax]
+        vetLimX = lim(1:2);
+        
+        % Blocco lo stesso intervallo sugli assi x e y, cosi' da vedere i trend
+        axis([vetLimX min(loadsIrregularity) max(loadsIrregularity)]);
+        
+        % Sull'asse delle X forzo il nome del giorno [datetick interpreta
+        % l'identificatore del "date_ID", ottenuto con datenum(...)]
+        datetick('x','ddd', 'keepticks')
+        xlabel('weekday')
+        ylabel('DETSLogLoad (MW)')
+        title(strcat('October of year: ', num2str(y)))
+        grid
+        y=y+1;
+    end
+end
+
+
+
 
 % figure(4)
 % for i = 0:11
