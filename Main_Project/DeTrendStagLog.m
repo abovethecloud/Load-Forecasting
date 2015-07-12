@@ -102,7 +102,7 @@ for r=0:2,
     end
 end
 
-%% Spaghetti plot
+%% Spaghetti plot per la detrendizzazione
 
 figure('Name', 'Spaghetti plot detrendizzato', 'NumberTitle', 'off')
 for i=1:12
@@ -129,12 +129,12 @@ hold off
 
 meanDailyLoad = zeros(1, 7);
 loadsIrregularity = loadsDetrended; % Vettore che conterra' i dati destagionalizzati
-for i = 1:7,
-    booleanDay = (dayOfWeek == i);
-    meanDailyLoad(i) = mean(loadsDetrended(booleanDay));
+for d = 1:7,
+    booleanDay = (dayOfWeek == d);
+    meanDailyLoad(d) = mean(loadsDetrended(booleanDay));
     
     % Destagionalizzazione
-    loadsIrregularity = loadsIrregularity - meanDailyLoad(i)*(booleanDay');
+    loadsIrregularity = loadsIrregularity - meanDailyLoad(d)*(booleanDay');
 end
 
 figure('Name', 'Andamento Stagionalità',    'NumberTitle', 'off')
@@ -169,7 +169,107 @@ for r=0:2,
     end
 end
 
+%% Spaghetti plot per la destagionalizzazione
 
+figure('Name', 'Spaghetti plot Irregolarita', 'NumberTitle', 'off')
+for i=1:12
+
+    % md rappresenta il vettore dei giorni del mese dell'anno in corso
+    md = dayOfMonth(years == 1999+i);
+    % wd è un vettore contenente il numero dei giorni (1-7)
+    wd = dayOfWeek(years == 1999+i);
+    
+    % ldet contiene i dati detrendizzati di un solo anno
+    ldet = loadsIrregularity(years == 1999+i);
+    
+    % Prima di plottare l'ottobre di un singolo anno, mi assicuro che i
+    % giorni siano sincronizzati.
+    md = md + wd(1) - 1;
+    
+    plot(md, ldet, '*-')
+    hold on
+        
+end
+hold off
+
+%% Confronto tra stagionalità mensile e dati effettivi per quel mese
+
+
+figure('Name', 'Media menisle - Dati veri',     'NumberTitle', 'off')
+
+WL = zeros(size(log_loads));
+
+for i=1:length(log_loads)
+    
+    WL(i)=meanDailyLoad(dayOfWeek(i));
+    
+end
+
+y=2000;
+
+for r=0:2
+
+    for c=1:4
+
+        subplot(3,4,r*4+c)
+        plot(date_ID(years==y),log_loads(years==y),'*',date_ID(years==y),betterMeans(y-1999)+WL(years==y),'d-')
+%       asse=axis;
+%       axis([asse(1:2) 0.7 1.2]);
+        datetick('x','d')
+        xlabel('weekday')
+        ylabel('load (MW)')
+        title(strcat('October of year: ',num2str(y)))
+        grid
+        y=y+1;
+
+    end
+
+end
+
+%% Stima Autocovarianza annuale
+
+
+figure('Name', 'Autocovarianza',     'NumberTitle', 'off')
+y = 2000;
+loadsIrregYear = zeros(1, 28);
+autocovarianza = zeros (12, 2*length(loadsIrregYear)-1);
+for r=0:2,
+    for c=1:4,
+        % Plotto 
+        subplot(3, 4, r*4+c)
+        i = r*4+c
+        
+        loadsIrregYear = loadsIrregularity(years == y);
+        
+        % Invece di fare l'autocovarianza per il processo che include gli
+        % ultimi giorni del mese, lo pulisco per colpa del ponte di fine
+        % mese. Tolgo gli ultimi 3 gg.
+        loadsIrregYear28 = loadsIrregYear(1:28);
+        autocovarianza(i, :) = xcov(loadsIrregYear28);
+        plot(-27:1:27, autocovarianza(i, :))
+        
+        lim = axis;  % Fornisce un vettore [xMin xMax yMin yMax]
+        vetLimX = lim(1:2);
+        
+        % Blocco lo stesso intervallo sugli assi x e y, cosi' da vedere i trend
+        axis([vetLimX min(autocovarianza(i, :)) max(autocovarianza(i, :))]);
+        
+        xlabel('distanza temporale (gg)')
+        ylabel('Auto-covarianza')
+        title(strcat('October of year: ', num2str(y)))
+        grid
+        y=y+1;
+    end
+end
+
+%% Media dell'autocovarianza
+
+figure('Name', 'Autocovarianza MEDIA',     'NumberTitle', 'off')
+meanAutocov = zeros(1, length(autocovarianza(1, :)));
+for i = 1:1:length(autocovarianza(1, :)),
+    meanAutocov(i) = mean(autocovarianza(: ,i));
+end
+plot(-27:1:27, meanAutocov);
 
 
 % figure(4)
