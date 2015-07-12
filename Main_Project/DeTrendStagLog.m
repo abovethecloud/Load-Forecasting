@@ -6,7 +6,8 @@ close all
 
 load datiOTT;
 
-%% Stima trend del log dei dati
+
+%% Inizializzazioni
 
 % Do i nomi alle colonne dei dati, e faccio il logaritmo dei dati.
 date_ID = datiOTT(:, 1);
@@ -17,14 +18,22 @@ month = datiOTT(:, 4);
 dayOfMonth = datiOTT(:, 5);
 dayOfWeek = datiOTT(:, 6);
 
+anni_unici = unique(years); % Vettore contenente un anno diverso per elemento
+numero_anni = length(anni_unici);
+numero_giorni_mese = 31;
+
+
+
+%% Stima trend del log dei dati
+
 % Per ogni anno, calcolo la media dei logaritmi dei carichi in Ottobre in 3
 % modi diversi, dopodiché la salvo negli elementi dei vettori "means",
 % "fourWeeksMeans" e "betterMeans".
-means = zeros(1, 12);
-fourWeeksMeans = zeros(1, 12);
-betterMeans = zeros(1, 12);
+means = zeros(1, numero_anni);
+fourWeeksMeans = zeros(1, numero_anni);
+betterMeans = zeros(1, numero_anni);
 partialBetterMeans = zeros(1, 4); % vettore richiesto per fare la media
-for i = 0:11,
+for i = 0:numero_anni-1,
     
     currentYear = 2000+i;
     currentYearLogLoads = log_loads(years == currentYear);
@@ -68,7 +77,7 @@ legend('Trend 31 gg', 'Trend 28 gg', 'Trend 28 gg medio',   'Location', 'southea
 % lunghezza dei dati e lo riempio con i dati detrendizzati (uso la miglior
 % detrendizzazione)
 loadsDetrended = zeros(1, length(log_loads));
-for i = 1:12
+for i = 1:numero_anni,
     currentYear = 1999+i;
     loadsDetrended(years == currentYear) = log_loads(years == currentYear) - betterMeans(i);
 end
@@ -78,12 +87,12 @@ end
 
 % Plot dei dati (logaritmici) detrendizzati a partire dall'anno 2000
 figure('Name', 'Dati detrendizzati',     'NumberTitle', 'off')
-y = 2000;
+yyyy = 2000;
 for r=0:2,
     for c=1:4,
         % Plotto 
         subplot(3, 4, r*4+c)
-        plot(date_ID(years == y), loadsDetrended(years == y))
+        plot(date_ID(years == yyyy), loadsDetrended(years == yyyy))
         
         lim = axis;  % Fornisce un vettore [xMin xMax yMin yMax]
         vetLimX = lim(1:2);
@@ -96,16 +105,16 @@ for r=0:2,
         datetick('x','ddd', 'keepticks')
         xlabel('weekday')
         ylabel('detrendedLogLoad (MW)')
-        title(strcat('October of year: ', num2str(y)))
+        title(strcat('October of year: ', num2str(yyyy)))
         grid
-        y=y+1;
+        yyyy=yyyy+1;
     end
 end
 
 %% Spaghetti plot per la detrendizzazione
 
 figure('Name', 'Spaghetti plot detrendizzato', 'NumberTitle', 'off')
-for i=1:12
+for i=1:numero_anni,
 
     % md rappresenta il vettore dei giorni del mese dell'anno in corso
     md = dayOfMonth(years == 1999+i);
@@ -145,12 +154,12 @@ plot(1:7, meanDailyLoad)
 % Plot dei dati (logaritmici) detrendizzati e destagionalizzati a partire
 % dall'anno 2000
 figure('Name', 'Dati detrendizzati e destagionalizzati',     'NumberTitle', 'off')
-y = 2000;
+yyyy = 2000;
 for r=0:2,
     for c=1:4,
         % Plotto 
         subplot(3, 4, r*4+c)
-        plot(date_ID(years == y), loadsIrregularity(years == y))
+        plot(date_ID(years == yyyy), loadsIrregularity(years == yyyy))
         
         lim = axis;  % Fornisce un vettore [xMin xMax yMin yMax]
         vetLimX = lim(1:2);
@@ -163,16 +172,16 @@ for r=0:2,
         datetick('x','ddd', 'keepticks')
         xlabel('weekday')
         ylabel('DETSLogLoad (MW)')
-        title(strcat('October of year: ', num2str(y)))
+        title(strcat('October of year: ', num2str(yyyy)))
         grid
-        y=y+1;
+        yyyy=yyyy+1;
     end
 end
 
 %% Spaghetti plot per la destagionalizzazione
 
 figure('Name', 'Spaghetti plot Irregolarita', 'NumberTitle', 'off')
-for i=1:12
+for i=1:numero_anni,
 
     % md rappresenta il vettore dei giorni del mese dell'anno in corso
     md = dayOfMonth(years == 1999+i);
@@ -205,22 +214,22 @@ for i=1:length(log_loads)
     
 end
 
-y=2000;
+yyyy=2000;
 
 for r=0:2
 
     for c=1:4
 
         subplot(3,4,r*4+c)
-        plot(date_ID(years==y),log_loads(years==y),'*',date_ID(years==y),betterMeans(y-1999)+WL(years==y),'d-')
+        plot(date_ID(years==yyyy),log_loads(years==yyyy),'*',date_ID(years==yyyy),betterMeans(yyyy-1999)+WL(years==yyyy),'d-')
 %       asse=axis;
 %       axis([asse(1:2) 0.7 1.2]);
         datetick('x','d')
         xlabel('weekday')
         ylabel('load (MW)')
-        title(strcat('October of year: ',num2str(y)))
+        title(strcat('October of year: ',num2str(yyyy)))
         grid
-        y=y+1;
+        yyyy=yyyy+1;
 
     end
 
@@ -230,7 +239,7 @@ end
 
 
 figure('Name', 'Autocovarianza',     'NumberTitle', 'off')
-y = 2000;
+yyyy = 2000;
 loadsIrregYear = zeros(1, 28);
 autocovarianza = zeros (12, 2*length(loadsIrregYear)-1);
 for r=0:2,
@@ -239,7 +248,7 @@ for r=0:2,
         subplot(3, 4, r*4+c)
         i = r*4+c
         
-        loadsIrregYear = loadsIrregularity(years == y);
+        loadsIrregYear = loadsIrregularity(years == yyyy);
         
         % Invece di fare l'autocovarianza per il processo che include gli
         % ultimi giorni del mese, lo pulisco per colpa del ponte di fine
@@ -256,9 +265,9 @@ for r=0:2,
         
         xlabel('distanza temporale (gg)')
         ylabel('Auto-covarianza')
-        title(strcat('October of year: ', num2str(y)))
+        title(strcat('October of year: ', num2str(yyyy)))
         grid
-        y=y+1;
+        yyyy=yyyy+1;
     end
 end
 
@@ -270,6 +279,23 @@ for i = 1:1:length(autocovarianza(1, :)),
     meanAutocov(i) = mean(autocovarianza(: ,i));
 end
 plot(-27:1:27, meanAutocov);
+
+
+%% TIME-SERIES DATA
+
+loads_realizations = zeros(numero_anni*4, 7);
+for i = 1:numero_anni,
+    currentYear = 1999+i;
+    for j = 1:4,
+            temp = log_loads(years == currentYear);
+            temp_settimana = temp(j:j+6);
+            loads_realizations(4*i+j-4,:) = temp_settimana;
+    end
+
+end
+
+% y = iddata(loads_realizations, [], 1)
+y = iddata(loadsIrregularity', [], 1)
 
 
 % figure(4)
