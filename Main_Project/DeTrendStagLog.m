@@ -106,13 +106,20 @@ end
 
 figure('Name', 'Spaghetti plot detrendizzato', 'NumberTitle', 'off')
 for i=1:12
+
+    % md rappresenta il vettore dei giorni del mese dell'anno in corso
+    md = dayOfMonth(years == 1999+i);
+    % wd è un vettore contenente il numero dei giorni (1-7)
+    wd = dayOfWeek(years == 1999+i);
     
-    md=dayOfMonth(years==1999+i);
-    wd=dayOfWeek(years==1999+i);
-    ldet=loadsDetrended(years==1999+i);
-    md=md+wd(1)-1;
+    % ldet contiene i dati detrendizzati di un solo anno
+    ldet = loadsDetrended(years == 1999+i);
     
-    plot(md,ldet,'*-')
+    % Prima di plottare l'ottobre di un singolo anno, mi assicuro che i
+    % giorni siano sincronizzati.
+    md = md + wd(1) - 1;
+    
+    plot(md, ldet, '*-')
     hold on
         
 end
