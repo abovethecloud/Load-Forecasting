@@ -40,11 +40,17 @@ if isempty(trend_settimana),
 else
     trend_settimana = mean([trend_settimana, mean(dati)])
 end
-dati = dati - trend_settimana;
+datiSettimana_detrendizzati = dati - trend_settimana;
 
 % Destagionalizzazione SETTIMANA
+dati_destagionalizzati = datiSettimana_detrendizzati; % Vettore che conterra' i dati destagionalizzati
+for d = 1:7,
+    booleanDay = (giorni_settimana == d);
+    % Destagionalizzazione
+    dati_destagionalizzati = dati_destagionalizzati - stagionalita(d)*(booleanDay);
+end
 
-
+% Predizione
 
 
 
