@@ -1,10 +1,10 @@
-function [loadsDetrended, trend] = detrendizza(loads, years)
+function [loadsDetrended, trend] = detrendizza(loads, years, num_anni_da_escludere)
 %DETRENDIZZA Summary of this function goes here
 %   Detailed explanation goes here
 
 anni_unici = unique(years); % Vettore contenente un anno diverso per elemento
 numero_anni = length(anni_unici); % Numero di anni nei dati
-num_anni_identificazione = numero_anni - 2;
+num_anni_identificazione = numero_anni - num_anni_da_escludere;
 
 trend = zeros(1, num_anni_identificazione);
 partialMeans = zeros(1, 3); % vettore richiesto per fare la media

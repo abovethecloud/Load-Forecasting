@@ -1,4 +1,4 @@
-function L_hat = predizione(datiWeek)
+%function L_hat = predizione(datiWeek)
 %PREDIZIONE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -19,7 +19,10 @@ numero_anni = length(anni_unici); % Numero di anni nei dati
 numero_giorni_mese = 31; % Numero di giorni di Ottobre
 
 % Detrendizzazione
-[loadsDetrended, trend] = detrendizza(loads, years)
+[loadsDetrended, trend] = detrendizza(loads, years, 2)
+
+% Destagionalizzazione
+[loads_deseasonalized, stagionalita] = destagionalizza(loadsDetrended, dayOfWeek)
 
 
 
@@ -28,4 +31,8 @@ numero_giorni_mese = 31; % Numero di giorni di Ottobre
 
 
 
-end
+
+
+
+
+%end
