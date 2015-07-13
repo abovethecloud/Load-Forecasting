@@ -18,13 +18,31 @@ anni_unici = unique(years); % Vettore contenente un anno diverso per elemento
 numero_anni = length(anni_unici); % Numero di anni nei dati
 numero_giorni_mese = 31; % Numero di giorni di Ottobre
 
-% Detrendizzazione
-[loadsDetrended, trend] = detrendizza(loads, years, 2)
+% Detrendizzazione DATI
+[loadsDetrended, trend] = detrendizza(loads, years, 0)
 
-% Destagionalizzazione
+% Destagionalizzazione DATI
 [loads_deseasonalized, stagionalita] = destagionalizza(loadsDetrended, dayOfWeek)
 
+% Stima modello AR sui DATI
+[model] = stima_modello(loads_deseasonalized)
 
+giorni_settimana = datiWeek(:, 6);
+giorni_mese = datiWeek(:, 5);
+anno = unique(datiWeek(:, 3));
+dati = datiWeek(:, 2); %     log_dati = log(dati);
+date = datiWeek(:, 1);
+
+% Detrendizzazione SETTIMANA
+trend_settimana = trend(anni_unici(1: length(trend)) == anno);
+if isempty(trend_settimana),
+    trend_settimana = mean(dati);
+else
+    trend_settimana = mean([trend_settimana, mean(dati)])
+end
+dati = dati - trend_settimana;
+
+% Destagionalizzazione SETTIMANA
 
 
 
