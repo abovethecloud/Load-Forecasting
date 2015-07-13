@@ -137,6 +137,7 @@ hold off
 %% Stima Stagionalta' dei dati e Destagionalizzazione
 
 meanDailyLoad = zeros(1, 7);
+global loadsIrregularity;
 loadsIrregularity = loadsDetrended; % Vettore che conterra' i dati destagionalizzati
 for d = 1:7,
     booleanDay = (dayOfWeek == d);
@@ -283,19 +284,27 @@ plot(-27:1:27, meanAutocov);
 
 %% TIME-SERIES DATA
 
-loads_realizations = zeros(numero_anni*4, 7);
-for i = 1:numero_anni,
-    currentYear = 1999+i;
-    for j = 1:4,
-            temp = log_loads(years == currentYear);
-            temp_settimana = temp(j:j+6);
-            loads_realizations(4*i+j-4,:) = temp_settimana;
-    end
-
-end
+% loads_realizations = zeros(numero_anni*4, 7);
+% for i = 1:numero_anni,
+%     currentYear = 1999+i;
+%     for j = 1:4,
+%             temp = loadsIrregularity(years == currentYear);
+%             temp_settimana = temp(j:j+6);
+%             loads_realizations(4*i+j-4,:) = temp_settimana;
+%     end
+% 
+% end
 
 % y = iddata(loads_realizations, [], 1)
-y = iddata(loadsIrregularity', [], 1)
+% y = iddata(loadsIrregularity', [], 1)
+
+
+loads_realization = loadsIrregularity(years == 2010)';
+m = ar(loads_realization, 1)
+m.a
+
+yf = forecast(m,loads_realization,1)
+% [Y YMSE] = forecast(m, loads_realization)
 
 
 % figure(4)
