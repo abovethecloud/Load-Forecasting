@@ -6,10 +6,11 @@ dayOfWeek = datiOTT(:, 6);
 stagionalita = zeros(1, 7);
 loads_deseasonalized = loadsDetrended; % Vettore che conterra' i dati destagionalizzati
 for d = 1:7,
-    booleanDay = (dayOfWeek == d);
-    stagionalita(d) = mean(loadsDetrended(booleanDay));
+    booleanD = (dayOfWeek == d)';
+    booleanDay = booleanD(1:length(loadsDetrended));
+    stagionalita(d) = mean(loadsDetrended(booleanDay'));
     % Destagionalizzazione
-    loads_deseasonalized = loads_deseasonalized - stagionalita(d)*(booleanDay');
+    loads_deseasonalized = loads_deseasonalized - stagionalita(d)*(booleanDay);
 end
 
 
