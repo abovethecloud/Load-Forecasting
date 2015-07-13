@@ -25,7 +25,7 @@ errore = zeros(1, numero_dati_campione);
 for i = 1:(numero_dati_campione-8)
     
     datiWeek = dati_anno_campione(i:(i+6),:);
-    stima = predizione(datiWeek);
+    [stima, loads_deseasonalized] = predizione(datiWeek);
     errore(i) = 100*(abs(stima - dati_anno_campione(i+7,2))/dati_anno_campione(i+7,2));
     giorni_settimana = datiWeek(:, 6);
     giorno_successivo(i) = giorni_settimana(7)+1;

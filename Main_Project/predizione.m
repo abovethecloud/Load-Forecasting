@@ -1,4 +1,4 @@
-function L_hat = predizione(datiWeek)
+function [L_hat, loadsDetrended] = predizione(datiWeek)
 %PREDIZIONE Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -18,11 +18,13 @@ anni_unici = unique(years); % Vettore contenente un anno diverso per elemento
 numero_anni = length(anni_unici); % Numero di anni nei dati
 numero_giorni_mese = 31; % Numero di giorni di Ottobre
 
+anni_da_escludere = 0
+
 % Detrendizzazione DATI
-[loadsDetrended, trend] = detrendizza(loads, years, 0)
+[loadsDetrended, trend] = detrendizza(loads, years, anni_da_escludere)
 
 % Destagionalizzazione DATI
-[loads_deseasonalized, stagionalita] = destagionalizza(loadsDetrended, dayOfWeek)
+[loads_deseasonalized, stagionalita] = destagionalizza(loadsDetrended, datiOTT)
 
 % Stima modello AR sui DATI
 [model] = stima_modello(loads_deseasonalized)
