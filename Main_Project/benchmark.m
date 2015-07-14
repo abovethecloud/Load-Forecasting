@@ -11,7 +11,6 @@ clc
 %% IMPOSTAZIONE PARAMETRI
 validation_year = 2011;
 
-
 %% Preparazione dei dati
 
 % Caricamento dati di interesse.
@@ -24,6 +23,12 @@ years = datiOTT(:,3);
 dati_anno_campione = datiOTT(years == validation_year, :);
 numero_giorni_campione = length(dati_anno_campione);
 num_settimane_campione = numero_giorni_campione-8; % Escludo ultima settimana
+
+%% STAMPA a schermo degli intervalli di date di identificazione-validazione
+disp('Anno dei dati di validazione: ')
+disp(num2str(validation_year))
+% disp('Anni dei dati di identificazione: ')
+% disp(strcat(num2str(min(years)), '/', ' ', num2str(max(years(years < validation_year)))))
 
 %% Stima errore
 % Usando come dati di validazione di volta in volta tutte le possibili

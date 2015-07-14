@@ -7,32 +7,35 @@ function L_hat = predizione(datiWeek)
 
 anni_da_escludere = 1;
 
-%% Importazione dati e inizializzazioni
+
+%% Importazione data set e inizializzazioni
+% Caricamento dati
 load datiOTT;
-years = datiOTT(:, 3);
-% datiOTT = datiOTT((years <= max(years)-anni_da_escludere), :)
-date_ID = datiOTT(:, 1);
-loads = datiOTT(:,2);
-years = datiOTT(:, 3);
-month = datiOTT(:, 4);
-dayOfMonth = datiOTT(:, 5);
-dayOfWeek = datiOTT(:, 6);
+dataSet = datiOTT;
 
-anni_unici = unique(years); % Vettore contenente un anno diverso per elemento
-numero_anni = length(anni_unici); % Numero di anni nei dati
-numero_giorni_mese = 31; % Numero di giorni di Ottobre
+% Restrizione al data set delle righe di identificazione
+years = dataSet(:, 3);
+boolSet = (years <= max(years)-anni_da_escludere); % Maschera identificazione
+dataSet = dataSet(boolSet, :); % Restrizione righe
 
-boolAnno = years <= max(years) - anni_da_escludere; % TODO: eliminare condizione, in favore del filtro su datiOTT
-loads = loads(boolAnno);
+% Esplicitazione dati di interesse
+date_ID = dataSet(:, 1);
+loads = dataSet(:,2);
+years = dataSet(:, 3);
+month = dataSet(:, 4);
+dayOfMonth = dataSet(:, 5);
+dayOfWeek = dataSet(:, 6);
+
+anni_unici = unique(years); % Vettore contenente tutti gli anni diversi
 
 % Detrendizzazione DATI
-[loadsDetrended, trend] = detrendizza(loads, years, anni_da_escludere)
+[loadsDetrended, trend] = detrendizza(dataSet);
 
 % Destagionalizzazione DATI
-[loads_deseasonalized, stagionalita] = destagionalizza(loadsDetrended, datiOTT)
+[loads_deseasonalized, stag_settimanale] = destagionalizza(loadsDetrended, dataSet);
 
 % Stima modello AR sui DATI
-[model] = stima_modello(loads_deseasonalized)
+[model] = stima_modello(loads_deseasonalized);
 
 giorni_settimana = datiWeek(:, 6);
 giorni_mese = datiWeek(:, 5);
@@ -45,7 +48,7 @@ trend_settimana = trend(anni_unici(1: length(trend)) == anno);
 if isempty(trend_settimana),
     trend_settimana = mean(dati);
 else
-    trend_settimana = mean([trend_settimana, mean(dati)])
+    trend_settimana = mean([trend_settimana, mean(dati)]);
 end
 datiSettimana_detrendizzati = dati - trend_settimana;
 
@@ -54,23 +57,17 @@ dati_destagionalizzati = datiSettimana_detrendizzati; % Vettore che conterra' i 
 for d = 1:7,
     booleanDay = (giorni_settimana == d);
     % Destagionalizzazione
-    dati_destagionalizzati = dati_destagionalizzati - stagionalita(d)*(booleanDay);
+    dati_destagionalizzati = dati_destagionalizzati - stag_settimanale(d)*(booleanDay);
 end
 
 % Predizione
-L_hat = forecast(model, dati_destagionalizzati, 1)
+L_hat_modello = forecast(model, dati_destagionalizzati, 1);
 giorno_succ = giorni_settimana(7)+1;
 if giorno_succ > 7,
     giorno_succ = 1;
 end
-L_hat = L_hat + stagionalita(giorno_succ)
-L_hat = L_hat + trend_settimana
-
-
-
-
-
-
+L_hat_detrendizzato = L_hat_modello + stag_settimanale(giorno_succ);
+L_hat = L_hat_detrendizzato + trend_settimana;
 
 
 end
