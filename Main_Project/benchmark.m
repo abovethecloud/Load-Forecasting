@@ -35,6 +35,7 @@ disp(num2str(validation_year))
 % settimane di Ottobre dell'anno di validazione, stimo gli errori,
 % salvandoli in un vettore "errore" di cui faccio poi la media.
 erroreMAPE = zeros(1, num_settimane_campione);
+giorno_successivo = zeros(1, num_settimane_campione);
 for i = 1:(num_settimane_campione)
     
     datiWeek = dati_anno_campione(i:(i+6),:);

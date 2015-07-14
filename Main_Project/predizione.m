@@ -19,12 +19,7 @@ boolSet = (years <= max(years)-anni_da_escludere); % Maschera identificazione
 dataSet = dataSet(boolSet, :); % Restrizione righe
 
 % Esplicitazione dati di interesse
-date_ID = dataSet(:, 1);
-loads = dataSet(:,2);
 years = dataSet(:, 3);
-month = dataSet(:, 4);
-dayOfMonth = dataSet(:, 5);
-dayOfWeek = dataSet(:, 6);
 
 anni_unici = unique(years); % Vettore contenente tutti gli anni diversi
 
@@ -38,10 +33,8 @@ anni_unici = unique(years); % Vettore contenente tutti gli anni diversi
 [model] = stima_modello(loads_deseasonalized);
 
 giorni_settimana = datiWeek(:, 6);
-giorni_mese = datiWeek(:, 5);
 anno = unique(datiWeek(:, 3));
 dati = datiWeek(:, 2); %     log_dati = log(dati);
-date = datiWeek(:, 1);
 
 % Detrendizzazione SETTIMANA
 trend_settimana = trend(anni_unici(1: length(trend)) == anno);
@@ -68,6 +61,5 @@ if giorno_succ > 7,
 end
 L_hat_detrendizzato = L_hat_modello + stag_settimanale(giorno_succ);
 L_hat = L_hat_detrendizzato + trend_settimana;
-
 
 end
