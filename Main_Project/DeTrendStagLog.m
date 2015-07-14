@@ -31,7 +31,7 @@ numero_giorni_mese = 31;
 % "fourWeeksMeans" e "betterMeans".
 means = zeros(1, numero_anni);
 fourWeeksMeans = zeros(1, numero_anni);
-betterMeans = zeros(1, numero_anni+1);
+betterMeans = zeros(1, numero_anni);
 partialBetterMeans = zeros(1, 4); % vettore richiesto per fare la media
 for i = 0:numero_anni-1,
     
@@ -60,9 +60,11 @@ for i = 0:numero_anni-1,
     
 end
 
-model = ar(betterMeans, 1)
-yf = forecast(model, betterMeans(1:12)', 1)
-betterMeans(13) = yf;
+% p = polyfit((2000:2011), betterMeans(1:12), 4)
+% y1 = polyval(p, 2000:2013)
+% 
+% betterMeans(13) = y1(13)
+% betterMeans(14) = y1(14)
 
 % Plotto il grafico del confronto tra trend
 figure('Name', 'Confronto trend',    'NumberTitle', 'off')
@@ -70,7 +72,7 @@ plot(2000:2011, means, '-.rx')
 hold on
 plot(2000:2011, fourWeeksMeans, '-.g*')
 hold on
-plot(2000:2012, betterMeans, '-bo')
+plot(2000:2011, betterMeans, '-bo')
 legend('Trend 31 gg', 'Trend 28 gg', 'Trend 28 gg medio',   'Location', 'southeast')
 % La legenda è in basso a destra
 
