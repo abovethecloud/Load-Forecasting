@@ -1,6 +1,11 @@
 function [loads_deseasonalized, stag_settimanale] = destagionalizza(loadsDetrended, dataSet)
-%DESTAGIONALIZZA Summary of this function goes here
-%   Detailed explanation goes here
+%DESTAGIONALIZZA Destagionalizza i dati già detrendizzati in ingresso.
+%Restituisce i dati destagionalizzati e la stagionalità settimanale
+%stimata.
+%   La destagionalizzazione dei dati detrendizzati avviene effettuando la
+%   media per ogni giorno della settimana di tutti i giorni degli anni
+%   che compongono il data set.
+
 dayOfWeek = dataSet(:, 6);
 
 stag_settimanale = zeros(1, 7);

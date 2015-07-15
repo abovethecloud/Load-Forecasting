@@ -1,6 +1,10 @@
 function [loadsDetrended, trend] = detrendizza(dataSet)
-%DETRENDIZZA Summary of this function goes here
-%   Detailed explanation goes here
+%DETRENDIZZA Detrendizza i dati di carico elettrico in ingresso e li
+%restituisce unitamente al trend stimato.
+%   La detrendizzazione avviene sui dati di carico elettrico contenuti in
+%   un matrice nx6, in cui n è il numero di righe (e quindi di dati
+%   giornalieri) e 6 sono le colonne contenti le informazioni sui dati.
+%   L'effettivo dato di carico è contenuto nella seconda colonna.
 
 %% Estrapolazione dati utili
 loads = dataSet(:,2);

@@ -1,0 +1,512 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>predizione</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2015-07-15"><meta name="DC.source" content="predizione.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">PREDIZIONE ONE-DAY-AHEAD DEL CARICO ELETTRICO</a></li><li><a href="#3">Scelta del numero di anni da escludere dal set di identificazione</a></li><li><a href="#4">Import data set e inizializzazioni</a></li><li><a href="#5">Elaborazione dei dati degli anni precedenti e stima del modello</a></li><li><a href="#6">Elaborazione dei dati della settimana precedente la previsione</a></li><li><a href="#7">Predizione</a></li></ul><h2>Called Functions</h2><ul><li><a href="#destagionalizza">destagionalizza </a></li><li><a href="#detrendizza">detrendizza </a></li><li><a href="#stima_modello">stima_modello </a></li></ul></div><h2>PREDIZIONE ONE-DAY-AHEAD DEL CARICO ELETTRICO<a name="1"></a></h2><pre class="codeinput"><span class="keyword">function</span> L_hat = predizione(datiWeek)
+</pre><pre class="codeinput"><span class="comment">%PREDIZIONE Predice il carico elettrico del giorno successivo ad una</span>
+<span class="comment">%settimana di Ottobre di un dato anno</span>
+<span class="comment">%   Per la previsione, questa funzione utilizza i dati della settimana di</span>
+<span class="comment">%   Ottobre precedente al giorno da stimare e un certo numero di mesi di</span>
+<span class="comment">%   Ottobre di anni precedenti utilizzati come Set di Identificazione del</span>
+<span class="comment">%   modello previsionale.</span>
+<span class="comment">%   Dei dati viene effettuata la detrendizzazione, la destagionalizzazione</span>
+<span class="comment">%   e viene studiato ci&ograve; che rimane come modello AR.</span>
+
+<span class="comment">% Dati di prova in mancanza di input:</span>
+datiWeek = [734799 27930.0408215328 2011 10 23 1;734800 35011.4504166509 2011 10 24 2;734801 36994.6270701670 2011 10 25 3;734802 37407.5724480600 2011 10 26 4;734803 36912.8835697433 2011 10 27 5;734804 36450.5041654192 2011 10 28 6;734805 31192.0431393705 2011 10 29 7];
+</pre><h2>Scelta del numero di anni da escludere dal set di identificazione<a name="3"></a></h2><pre class="codeinput">anni_da_escludere = 1;
+</pre><h2>Import data set e inizializzazioni<a name="4"></a></h2><pre class="codeinput"><span class="comment">% Caricamento dati</span>
+load <span class="string">datiOTT</span>;
+dataSet = datiOTT;
+
+<span class="comment">% Restrizione al data set delle righe di identificazione</span>
+years = dataSet(:, 3);
+boolSet = (years &lt;= max(years)-anni_da_escludere); <span class="comment">% Maschera identificazione</span>
+dataSet = dataSet(boolSet, :); <span class="comment">% Restrizione righe</span>
+
+<span class="comment">% Esplicitazione dati di interesse</span>
+years = dataSet(:, 3);
+
+anni_unici = unique(years); <span class="comment">% Vettore contenente tutti gli anni diversi</span>
+</pre><h2>Elaborazione dei dati degli anni precedenti e stima del modello<a name="5"></a></h2><pre class="codeinput"><span class="comment">% Detrendizzazione DATI</span>
+[loadsDetrended, trend] = detrendizza(dataSet);
+
+<span class="comment">% Destagionalizzazione DATI</span>
+[loads_deseasonalized, stag_settimanale] = destagionalizza(loadsDetrended, dataSet);
+
+<span class="comment">% Stima modello AR sui DATI</span>
+[model] = stima_modello(loads_deseasonalized);
+</pre><h2>Elaborazione dei dati della settimana precedente la previsione<a name="6"></a></h2><pre class="codeinput">giorni_settimana = datiWeek(:, 6);
+anno = unique(datiWeek(:, 3));
+dati = datiWeek(:, 2); <span class="comment">%     log_dati = log(dati);</span>
+
+<span class="comment">% Detrendizzazione SETTIMANA</span>
+trend_settimana = trend(anni_unici(1: length(trend)) == anno);
+<span class="keyword">if</span> isempty(trend_settimana),
+    trend_settimana = mean(dati);
+<span class="keyword">else</span>
+    trend_settimana = mean([trend_settimana, mean(dati)]);
+<span class="keyword">end</span>
+datiSettimana_detrendizzati = dati - trend_settimana;
+
+<span class="comment">% Destagionalizzazione SETTIMANA</span>
+dati_destagionalizzati = datiSettimana_detrendizzati; <span class="comment">% Vettore che conterra' i dati destagionalizzati</span>
+<span class="keyword">for</span> d = 1:7,
+    booleanDay = (giorni_settimana == d);
+    <span class="comment">% Destagionalizzazione</span>
+    dati_destagionalizzati = dati_destagionalizzati - stag_settimanale(d)*(booleanDay);
+<span class="keyword">end</span>
+</pre><h2>Predizione<a name="7"></a></h2><p>Predizione basata sul modello estrapolato dai dati degli anni precedenti e calibrato sull'ultima settimana.</p><pre class="codeinput">L_hat_modello = forecast(model, dati_destagionalizzati, 1);
+giorno_succ = giorni_settimana(7)+1;
+<span class="keyword">if</span> giorno_succ &gt; 7,
+    giorno_succ = 1;
+<span class="keyword">end</span>
+L_hat_detrendizzato = L_hat_modello + stag_settimanale(giorno_succ);
+L_hat = L_hat_detrendizzato + trend_settimana;
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><pre class="codeoutput">
+ans =
+
+   2.7081e+04
+
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% PREDIZIONE ONE-DAY-AHEAD DEL CARICO ELETTRICO
+
+function L_hat = predizione(datiWeek)
+%PREDIZIONE Predice il carico elettrico del giorno successivo ad una
+%settimana di Ottobre di un dato anno
+%   Per la previsione, questa funzione utilizza i dati della settimana di
+%   Ottobre precedente al giorno da stimare e un certo numero di mesi di
+%   Ottobre di anni precedenti utilizzati come Set di Identificazione del
+%   modello previsionale.
+%   Dei dati viene effettuata la detrendizzazione, la destagionalizzazione
+%   e viene studiato ciò che rimane come modello AR.
+
+% Dati di prova in mancanza di input:
+datiWeek = [734799 27930.0408215328 2011 10 23 1;734800 35011.4504166509 2011 10 24 2;734801 36994.6270701670 2011 10 25 3;734802 37407.5724480600 2011 10 26 4;734803 36912.8835697433 2011 10 27 5;734804 36450.5041654192 2011 10 28 6;734805 31192.0431393705 2011 10 29 7];
+
+%% Scelta del numero di anni da escludere dal set di identificazione
+
+anni_da_escludere = 1;
+
+
+%% Import data set e inizializzazioni
+
+% Caricamento dati
+load datiOTT;
+dataSet = datiOTT;
+
+% Restrizione al data set delle righe di identificazione
+years = dataSet(:, 3);
+boolSet = (years <= max(years)-anni_da_escludere); % Maschera identificazione
+dataSet = dataSet(boolSet, :); % Restrizione righe
+
+% Esplicitazione dati di interesse
+years = dataSet(:, 3);
+
+anni_unici = unique(years); % Vettore contenente tutti gli anni diversi
+
+%% Elaborazione dei dati degli anni precedenti e stima del modello
+
+% Detrendizzazione DATI
+[loadsDetrended, trend] = detrendizza(dataSet);
+
+% Destagionalizzazione DATI
+[loads_deseasonalized, stag_settimanale] = destagionalizza(loadsDetrended, dataSet);
+
+% Stima modello AR sui DATI
+[model] = stima_modello(loads_deseasonalized);
+
+
+%% Elaborazione dei dati della settimana precedente la previsione
+
+giorni_settimana = datiWeek(:, 6);
+anno = unique(datiWeek(:, 3));
+dati = datiWeek(:, 2); %     log_dati = log(dati);
+
+% Detrendizzazione SETTIMANA
+trend_settimana = trend(anni_unici(1: length(trend)) == anno);
+if isempty(trend_settimana),
+    trend_settimana = mean(dati);
+else
+    trend_settimana = mean([trend_settimana, mean(dati)]);
+end
+datiSettimana_detrendizzati = dati - trend_settimana;
+
+% Destagionalizzazione SETTIMANA
+dati_destagionalizzati = datiSettimana_detrendizzati; % Vettore che conterra' i dati destagionalizzati
+for d = 1:7,
+    booleanDay = (giorni_settimana == d);
+    % Destagionalizzazione
+    dati_destagionalizzati = dati_destagionalizzati - stag_settimanale(d)*(booleanDay);
+end
+
+%% Predizione
+% Predizione basata sul modello estrapolato dai dati degli anni precedenti
+% e calibrato sull'ultima settimana.
+
+L_hat_modello = forecast(model, dati_destagionalizzati, 1);
+giorno_succ = giorni_settimana(7)+1;
+if giorno_succ > 7,
+    giorno_succ = 1;
+end
+L_hat_detrendizzato = L_hat_modello + stag_settimanale(giorno_succ);
+L_hat = L_hat_detrendizzato + trend_settimana;
+
+end
+##### SOURCE END #####
+--></body></html>
+<a name="destagionalizza"></a>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>destagionalizza</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2015-07-15"><meta name="DC.source" content="destagionalizza.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [loads_deseasonalized, stag_settimanale] = destagionalizza(loadsDetrended, dataSet)
+<span class="comment">%DESTAGIONALIZZA Destagionalizza i dati gi&agrave; detrendizzati in ingresso.</span>
+<span class="comment">%Restituisce i dati destagionalizzati e la stagionalit&agrave; settimanale</span>
+<span class="comment">%stimata.</span>
+<span class="comment">%   La destagionalizzazione dei dati detrendizzati avviene effettuando la</span>
+<span class="comment">%   media per ogni giorno della settimana di tutti i giorni degli anni</span>
+<span class="comment">%   che compongono il data set.</span>
+
+dayOfWeek = dataSet(:, 6);
+
+stag_settimanale = zeros(1, 7);
+loads_deseasonalized = loadsDetrended; <span class="comment">% Vettore che conterra' i dati destagionalizzati</span>
+<span class="keyword">for</span> d = 1:7,
+    booleanD = (dayOfWeek == d)'; <span class="comment">% Maschera per giorno</span>
+    booleanDay = booleanD(1:length(loadsDetrended));
+    stag_settimanale(d) = mean(loadsDetrended(booleanDay'));
+    <span class="comment">% Destagionalizzazione</span>
+    loads_deseasonalized = loads_deseasonalized - stag_settimanale(d)*(booleanDay);
+<span class="keyword">end</span>
+
+
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+\n
+--></body></html>
+<a name="detrendizza"></a>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>detrendizza</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2015-07-15"><meta name="DC.source" content="detrendizza.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Estrapolazione dati utili</a></li><li><a href="#4">Algoritmo di stima del trend e detrendizzazione</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [loadsDetrended, trend] = detrendizza(dataSet)
+</pre><pre class="codeinput"><span class="comment">%DETRENDIZZA Detrendizza i dati di carico elettrico in ingresso e li</span>
+<span class="comment">%restituisce unitamente al trend stimato.</span>
+<span class="comment">%   La detrendizzazione avviene sui dati di carico elettrico contenuti in</span>
+<span class="comment">%   un matrice nx6, in cui n &egrave; il numero di righe (e quindi di dati</span>
+<span class="comment">%   giornalieri) e 6 sono le colonne contenti le informazioni sui dati.</span>
+<span class="comment">%   L'effettivo dato di carico &egrave; contenuto nella seconda colonna.</span>
+</pre><h2>Estrapolazione dati utili<a name="3"></a></h2><pre class="codeinput">loads = dataSet(:,2);
+years = dataSet(:, 3);
+
+<span class="comment">% Conta degli anni per decidere la lunghezza del ciclo</span>
+anni_unici = unique(years); <span class="comment">% Vettore contenente un anno diverso per elemento</span>
+numero_anni = length(anni_unici); <span class="comment">% Numero di anni nei dati</span>
+</pre><h2>Algoritmo di stima del trend e detrendizzazione<a name="4"></a></h2><pre class="codeinput">trend = zeros(1, numero_anni);
+partialMeans = zeros(1, 3); <span class="comment">% vettore richiesto per fare la media</span>
+loadsDetrended = zeros(1, length(loads));
+<span class="keyword">for</span> i = 1:numero_anni,
+
+    currentYear = min(anni_unici)-1 + i;
+    currentYearLoads = loads(years == currentYear);
+
+    <span class="comment">% Prendo solo i dati di tutte le sequenze di 28 giorni per l'Ottobre di</span>
+    <span class="comment">% ogni anno e ne faccio la media (tranne l'ultima, che contiene il 31).</span>
+    <span class="comment">% In questo modo il trend risulta indipendente da qual'&egrave; il primo</span>
+    <span class="comment">% giorno di ottobre.</span>
+    <span class="keyword">for</span> j = 0:2,
+        fourWeeksLoadsPartial = currentYearLoads(1+j:28+j);
+        partialMeans(j+1) = mean(fourWeeksLoadsPartial);
+    <span class="keyword">end</span>
+
+    trend(i) = mean(partialMeans);
+
+    <span class="comment">% Detrendizzo</span>
+    loadsDetrended(years == currentYear) = loads(years == currentYear) - trend(i);
+
+<span class="keyword">end</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+\n
+--></body></html>
+<a name="stima_modello"></a>
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>stima_modello</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2015-07-15"><meta name="DC.source" content="stima_modello.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> [model] = stima_modello(loads_deseasonalized)
+<span class="comment">%STIMA_MODELLO Stima di un modello AR sui dati detrendizzati e</span>
+<span class="comment">%destagionalizzati</span>
+<span class="comment">%   Una volta detrendizzati e destagionalizzati i dati, viene stimato un</span>
+<span class="comment">%   modello AR di settimo grado sui residui. La scelta del grado &egrave; stata</span>
+<span class="comment">%   sostanzialmente dettata da una misurazione degli errori e da una</span>
+<span class="comment">%   considerazione pratica: comunque disponendo solo di una settimana</span>
+<span class="comment">%   prima, andare oltre il settimo grado non potrebbe apportare particolari</span>
+<span class="comment">%   benefici</span>
+
+loads_realization = loads_deseasonalized;
+model = ar(loads_realization, 7); <span class="comment">% AR di settimo grado</span>
+
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+\n
+--></body></html>
